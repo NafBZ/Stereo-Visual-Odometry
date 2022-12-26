@@ -24,6 +24,9 @@ if __name__ == '__main__':
     ground_truth = CameraPoses.data_description(pose_filepath)
     print(f'{ground_truth}\n')
 
+    ################### Visualisation ########################
+    ground_truth = CameraPoses.visualisation(pose_filepath)
+
     # To know metrices of each frame wrt. to the world coordinate
     any_gt = CameraPoses(position=0)
     print(
@@ -32,5 +35,3 @@ if __name__ == '__main__':
         f'The rotation of that frame wrt. world coordinate \n{any_gt.rotation_matrix()}\n')
 
     #################### Ground Truth #########################
-
-    ground_truth = CameraPoses.visualisation(pose_filepath)
