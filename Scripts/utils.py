@@ -41,7 +41,9 @@ class CameraPoses:
         translation = self.postion_matrix()[0:, 2:3]
         return translation
 
-    def description(self):
-        print(f'Total Number of Rows = {self.cam_pose.shape[0]}')
-        print(f'Total Number of Columns = {self.cam_pose.shape[1]}')
-        print(f'First 3 Rows \n{self.cam_pose.head(3)}')
+    @staticmethod
+    def data_description(filepath):
+        dataframe = pd.read_csv(filepath, delimiter=' ', header=None)
+        print(f'Total Number of Rows = {dataframe.shape[0]}')
+        print(f'Total Number of Columns = {dataframe.shape[1]}')
+        print(f'First 3 Rows \n{dataframe.head(3)}')
