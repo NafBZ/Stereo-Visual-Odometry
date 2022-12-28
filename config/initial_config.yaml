@@ -1,3 +1,4 @@
 data:
-  pose_path: "../datasets/poses/00.txt"
-  calib_path: "../datasets/caibration/00/calib.txt"
+  sequence: '00'
+  main_path: '../datasets/sequences/{}/'
+  pose_path: '../datasets/poses/{}.txt'
