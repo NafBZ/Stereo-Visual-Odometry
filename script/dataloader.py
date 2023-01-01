@@ -39,8 +39,9 @@ class DataLoader(object):
         self.right_camera_images = os.listdir(self.sequence_dir + 'image_1')
 
         # For lidar data points
-        self.velodyne_files = os.listdir(self.sequence_dir + 'velodyne')
-        self.lidar_path = self.sequence_dir + 'velodyne/'
+        if lidar:
+            self.velodyne_files = os.listdir(self.sequence_dir + 'velodyne')
+            self.lidar_path = self.sequence_dir + 'velodyne/'
         self.frames = len(self.left_camera_images)
 
         # Extract the calibration parameters from P matrix
@@ -54,7 +55,7 @@ class DataLoader(object):
         self.P3 = np.array(calibration.loc['P3:']).reshape((3, 4))
 
         # Transformation Matrix for lidar
-        self.Tr = np.array(calibration.loc['Tr:']).reshape((3, 4))
+        #self.Tr = np.array(calibration.loc['Tr:']).reshape((3, 4))
 
         # Extract timestamps from the file
         self.times = np.array(pd.read_csv(self.sequence_dir + 'times.txt',
