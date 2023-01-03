@@ -19,14 +19,13 @@ pose_path = config['data']['pose_path']
 
 
 class DataLoader(object):
-    def __init__(self, sequence, lidar=False, low_memory=True):
+    def __init__(self, sequence, low_memory=True):
         """
         :params str sequence: Image path.
         :params bool lidar: lidar data.
         :params bool low_memory: If you have low memory in your laptop(e.g. Your RAM < 32GB), set the value to True.    
         """
 
-        self.lidar = lidar
         self.low_memory = low_memory
 
         # Set the directories for images and ground truth
@@ -35,13 +34,11 @@ class DataLoader(object):
         poses = pd.read_csv(self.poses_dir, delimiter=' ', header=None)
 
         # Make lists of left and right camera images to iterate
-        self.left_camera_images = os.listdir(self.sequence_dir + 'image_0')
-        self.right_camera_images = os.listdir(self.sequence_dir + 'image_1')
+        self.left_camera_images = sorted(
+            os.listdir(self.sequence_dir + 'image_0'))
+        self.right_camera_images = sorted(
+            os.listdir(self.sequence_dir + 'image_1'))
 
-        # For lidar data points
-        if lidar:
-            self.velodyne_files = os.listdir(self.sequence_dir + 'velodyne')
-            self.lidar_path = self.sequence_dir + 'velodyne/'
         self.frames = len(self.left_camera_images)
 
         # Extract the calibration parameters from P matrix
@@ -51,11 +48,6 @@ class DataLoader(object):
         # Projection Matrices
         self.P0 = np.array(calibration.loc['P0:']).reshape((3, 4))
         self.P1 = np.array(calibration.loc['P1:']).reshape((3, 4))
-        self.P2 = np.array(calibration.loc['P2:']).reshape((3, 4))
-        self.P3 = np.array(calibration.loc['P3:']).reshape((3, 4))
-
-        # Transformation Matrix for lidar
-        #self.Tr = np.array(calibration.loc['Tr:']).reshape((3, 4))
 
         # Extract timestamps from the file
         self.times = np.array(pd.read_csv(self.sequence_dir + 'times.txt',
@@ -75,18 +67,13 @@ class DataLoader(object):
 
             # Store two left and two right frames for testing purposes
             self.first_image_left = cv2.imread(self.sequence_dir + 'image_0/'
-                                               + self.left_camera_images[0], 0)
+                                               + self.left_camera_images[0])
             self.first_image_right = cv2.imread(self.sequence_dir + 'image_1/'
-                                                + self.right_camera_images[0], 0)
+                                                + self.right_camera_images[0])
             self.second_image_left = cv2.imread(self.sequence_dir + 'image_0/'
-                                                + self.left_camera_images[1], 0)
+                                                + self.left_camera_images[1])
             self.second_image_right = cv2.imread(self.sequence_dir + 'image_1/'
-                                                 + self.right_camera_images[1], 0)
-
-            if self.lidar:
-                self.first_pointcloud = np.fromfile(self.lidar_path + self.velodyne_files[0],
-                                                    dtype=np.float32,
-                                                    count=-1).reshape((-1, 4))
+                                                 + self.right_camera_images[1])
 
             # Image dimensions
             self.image_height = self.first_image_left.shape[0]
@@ -105,18 +92,11 @@ class DataLoader(object):
                     self.sequence_dir + 'image_0/' + left))
                 self.right_images.append(cv2.imread(
                     self.sequence_dir + 'image_1/' + right))
-                if self.lidar:
-                    pointcloud = np.fromfile(self.lidar_path + self.velodyne_files[i],
-                                             dtype=np.float32,
-                                             count=-1).reshape([-1, 4])
-                    self.pointclouds.append(pointcloud)
 
             self.first_image_left = self.left_images[0]
             self.first_image_right = self.right_images[0]
             self.second_image_left = self.left_images[1]
             self.second_image_right = self.right_images[1]
-            if self.lidar:
-                self.first_pointcloud = self.pointclouds[0]
 
             self.image_height = self.left_images[0].shape[0]
             self.image_width = self.left_images[0].shape[1]
@@ -127,11 +107,6 @@ class DataLoader(object):
                             for left in self.left_camera_images)
         self.right_images = (cv2.imread(self.sequence_dir + 'image_1/' + right, 0)
                              for right in self.right_camera_images)
-        if self.lidar:
-            self.pointclouds = (np.fromfile(self.lidar_path + velodyne_file,
-                                            dtype=np.float32,
-                                            count=-1).reshape((-1, 4))
-                                for velodyne_file in self.velodyne_files)
         pass
 
     # Augmented Rotation and Translated Matrix from Ground Truth

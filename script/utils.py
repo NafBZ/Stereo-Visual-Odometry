@@ -1,7 +1,10 @@
 import cv2
 import datetime
 import numpy as np
+import matplotlib.pyplot as plt
 
+
+############################################ Stereo Depth Estimation #########################################
 
 def disparity_mapping(left_image, right_image, rgb=False, verbose=False):
     '''
@@ -122,3 +125,69 @@ def stereo_depth(left_image, right_image, P0, P1, rgb=False, verbose=False):
     depth = depth_mapping(disp_map, l_intrinsic, l_translation, r_translation)
 
     return depth, disp_map
+
+
+############################################ Stereo Depth Estimation #########################################
+
+
+######################################### Feature Extraction and Matching ####################################
+
+def feature_extractor(image, detector='sift', mask=None):
+    """
+    provide keypoints and descriptors
+
+    :params image: image from the dataset
+
+    """
+    if detector == 'sift':
+        create_detector = cv2.SIFT_create()
+    elif detector == 'orb':
+        create_detector = cv2.ORB_create()
+
+    keypoints, descriptors = create_detector.detectAndCompute(image, mask)
+
+    return keypoints, descriptors
+
+
+def feature_matching(first_descriptor, second_descriptor, detector='sift', k=2):
+    """
+    Match features between two images
+
+    """
+
+    if detector == 'sift':
+        feature_matcher = cv2.BFMatcher_create(cv2.NORM_L2, crossCheck=False)
+    elif detector == 'orb':
+        feature_matcher = cv2.BFMatcher_create(
+            cv2.NORM_HAMMING2, crossCheck=False)
+    matches = feature_matcher.knnMatch(
+        first_descriptor, second_descriptor, k=k)
+
+    return matches
+
+
+def filter_matches_distance(matches, distance_threshold):
+    """
+    Filter matched features from two images by distance between the best matches
+
+    """
+    filtered_matches = []
+    for match1, match2 in matches:
+        if match1.distance <= distance_threshold * match2.distance:
+            filtered_matches.append(match1)
+
+    return filtered_matches
+
+
+def visualize_matches(first_image, second_image, keypoint_one, keypoint_two, matches):
+    """
+    Visualize corresponding matches in two images
+
+    """
+    show_matches = cv2.drawMatches(
+        first_image, keypoint_one, second_image, keypoint_two, matches, None, flags=2)
+    plt.figure(figsize=(15, 5), dpi=100)
+    plt.imshow(show_matches)
+    plt.show()
+
+######################################### Feature Extraction and Matching ####################################
