@@ -8,4 +8,3 @@ __pycache__/
 .ipynb_checkpoints
 
 sequences/
-test.py
