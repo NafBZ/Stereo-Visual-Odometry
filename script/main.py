@@ -6,7 +6,7 @@ import os
 import pandas as pd
 import yaml
 from dataloader import DataLoader
-from utils import stereo_depth, feature_extractor, feature_matching, filter_matches_distance, visualize_matches
+from utils import stereo_depth, feature_extractor, feature_matching, visualize_matches
 from mpl_toolkits.mplot3d import Axes3D
 
 
@@ -58,13 +58,20 @@ if __name__ == '__main__':
     plt.title('Disparity Mapping')
     plt.imshow(disp_map)
 
+    # Extracting features
     first_keypoints, first_descriptors = feature_extractor(left_image, 'orb')
     second_keypoints, second_descriptors = feature_extractor(
         next_left_image, 'orb')
+
+    # Matching without filtering
     matches = feature_matching(
         first_descriptors, second_descriptors, detector='orb')
     print('Number of matches before filtering:', len(matches))
-    matches = filter_matches_distance(matches, 0.75)
+
+    # Filtering the weak features
+    matches = feature_matching(
+        first_descriptors, second_descriptors, detector='orb', distance_threshold=0.75)
     print('Number of matches after filtering:', len(matches))
+
     visualize_matches(left_image, next_left_image,
                       first_keypoints, second_keypoints, matches)

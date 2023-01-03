@@ -133,6 +133,5 @@ class DataLoader(object):
         ax.set_ylabel("Movement in Y Direction")
         ax.set_zlabel("Movement in Z Direction")
         ax.set_title("Ground Truth")
-        plt.show()
 
         pass

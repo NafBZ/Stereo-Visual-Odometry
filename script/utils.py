@@ -21,17 +21,16 @@ def disparity_mapping(left_image, right_image, rgb=False, verbose=False):
     else:
         num_channels = 1
 
-    # Empirical values collected from a tutorial
-    sad_window = 6  # sad = sum of absolute differences
-    num_disparities = sad_window*16
+    # Empirical values collected from a OpenCV website
+    num_disparities = 6*16
     block_size = 11
 
     # Using SGBM matcher(Hirschmuller algorithm)
     matcher = cv2.StereoSGBM_create(numDisparities=num_disparities,
                                     minDisparity=0,
                                     blockSize=block_size,
-                                    P1=8 * num_channels * sad_window ** 2,
-                                    P2=32 * num_channels * sad_window ** 2,
+                                    P1=8 * num_channels * block_size ** 2,
+                                    P2=32 * num_channels * block_size ** 2,
                                     mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
                                     )
     if rgb:
@@ -149,7 +148,7 @@ def feature_extractor(image, detector='sift', mask=None):
     return keypoints, descriptors
 
 
-def feature_matching(first_descriptor, second_descriptor, detector='sift', k=2):
+def feature_matching(first_descriptor, second_descriptor, detector='sift', k=2,  distance_threshold=1.0):
     """
     Match features between two images
 
@@ -163,14 +162,7 @@ def feature_matching(first_descriptor, second_descriptor, detector='sift', k=2):
     matches = feature_matcher.knnMatch(
         first_descriptor, second_descriptor, k=k)
 
-    return matches
-
-
-def filter_matches_distance(matches, distance_threshold):
-    """
-    Filter matched features from two images by distance between the best matches
-
-    """
+    # Filtering out the weak features
     filtered_matches = []
     for match1, match2 in matches:
         if match1.distance <= distance_threshold * match2.distance:
