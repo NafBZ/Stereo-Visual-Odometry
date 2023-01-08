@@ -1,13 +1,7 @@
-import cv2
-import datetime
-import matplotlib.pyplot as plt
-import numpy as np
-import os
-import pandas as pd
 import yaml
 from dataloader import DataLoader
-from utils import stereo_depth, feature_extractor, feature_matching, visualize_matches
-from mpl_toolkits.mplot3d import Axes3D
+from visual_odometry import visual_odometry
+from utils import root_mean_squared_error
 
 
 # Driver Code
@@ -26,52 +20,12 @@ if __name__ == '__main__':
     # Create Instances
     data_handler = DataLoader(sequence=sequence)
 
-    # Local variables
-    left_image = data_handler.first_image_left
-    right_image = data_handler.first_image_right
-    next_left_image = data_handler.second_image_left
-    left_camera_matrix = data_handler.P0
-    right_camera_matrix = data_handler.P1
-
-    # Visualise Ground Truth
-    print(data_handler.gt_visualisation())
-
-    # # To know matrices of each frame wrt. to the world coordinate
-    # print(
-    #     f'The translation of that frame wrt. world coordinate \n{data_handler.gt_translation_matrix()}\n')
-    # print(
-    #     f'The rotation of that frame wrt. world coordinate \n{data_handler.gt_rotation_matrix()}\n')
-
+    # Reset frames to start from the beginning of the image list on a new run. Because we are using generators
     data_handler.reset_frames()
 
-    # depth and disparity maps
-    depth, disp_map = stereo_depth(left_image,
-                                   right_image,
-                                   left_camera_matrix,
-                                   right_camera_matrix)
+    # Estimated trajectory by our algorithm pipeline
+    trajectory = visual_odometry(data_handler)
 
-    plt.figure(figsize=(14, 8))
-    plt.title('Stereo Depth Mapping')
-    plt.imshow(depth)
-
-    plt.figure(figsize=(14, 8))
-    plt.title('Disparity Mapping')
-    plt.imshow(disp_map)
-
-    # Extracting features
-    first_keypoints, first_descriptors = feature_extractor(left_image, 'orb')
-    second_keypoints, second_descriptors = feature_extractor(
-        next_left_image, 'orb')
-
-    # Matching without filtering
-    matches = feature_matching(
-        first_descriptors, second_descriptors, detector='orb')
-    print('Number of matches before filtering:', len(matches))
-
-    # Filtering the weak features
-    matches = feature_matching(
-        first_descriptors, second_descriptors, detector='orb', distance_threshold=0.75)
-    print('Number of matches after filtering:', len(matches))
-
-    visualize_matches(left_image, next_left_image,
-                      first_keypoints, second_keypoints, matches)
+    # Calculating error
+    error = root_mean_squared_error(data_handler.ground_truth, trajectory)
+    print(f'The RMSE for Sequence {sequence} is {error.round(2)}')

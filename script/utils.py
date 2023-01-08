@@ -1,12 +1,26 @@
 import cv2
-import datetime
 import numpy as np
 import matplotlib.pyplot as plt
+import yaml
+
+
+# Load Config File
+with open("../config/initial_config.yaml", "r") as stream:
+    try:
+        config = yaml.safe_load(stream)
+    except yaml.YAMLError as error:
+        print(error)
+
+# Declare Necessary Variables
+rgb_value = config['parameters']['rgb']
+rectified_value = config['parameters']['rectified']
+detector_name = config['parameters']['detector']
+max_depth_value = config['parameters']['max_depth']
 
 
 ############################################ Stereo Depth Estimation #########################################
 
-def disparity_mapping(left_image, right_image, rgb=False, verbose=False):
+def disparity_mapping(left_image, right_image, rgb=rgb_value):
     '''
     Takes a stereo pair of images from the sequence and
     computes the disparity map for the left image.
@@ -23,7 +37,7 @@ def disparity_mapping(left_image, right_image, rgb=False, verbose=False):
 
     # Empirical values collected from a OpenCV website
     num_disparities = 6*16
-    block_size = 11
+    block_size = 7
 
     # Using SGBM matcher(Hirschmuller algorithm)
     matcher = cv2.StereoSGBM_create(numDisparities=num_disparities,
@@ -37,16 +51,9 @@ def disparity_mapping(left_image, right_image, rgb=False, verbose=False):
         left_image = cv2.cvtColor(left_image, cv2.COLOR_BGR2GRAY)
         right_image = cv2.cvtColor(right_image, cv2.COLOR_BGR2GRAY)
 
-    # Computation time to get disparity map
-    start = datetime.datetime.now()
+    # Disparity map
     left_image_disparity_map = matcher.compute(
         left_image, right_image).astype(np.float32)/16
-    end = datetime.datetime.now()
-
-    # In case of check the computation time
-    if verbose:
-        print(
-            f'Time to compute disparity map using Stereo SGBM:', end-start)
 
     return left_image_disparity_map
 
@@ -68,7 +75,7 @@ def decomposition(p):
 
 
 # Calculating depth information
-def depth_mapping(left_disparity_map, left_intrinsic, left_translation, right_translation, rectified=True):
+def depth_mapping(left_disparity_map, left_intrinsic, left_translation, right_translation, rectified=rectified_value):
     '''
 
     :params left_disparity_map: disparity map of left camera
@@ -98,7 +105,7 @@ def depth_mapping(left_disparity_map, left_intrinsic, left_translation, right_tr
 
 
 # Let's make an all-inclusive function to get the depth from an incoming set of stereo images
-def stereo_depth(left_image, right_image, P0, P1, rgb=False, verbose=False):
+def stereo_depth(left_image, right_image, P0, P1, rgb=rgb_value):
     '''
     Takes stereo pair of images and returns a depth map for the left camera. 
 
@@ -111,8 +118,7 @@ def stereo_depth(left_image, right_image, P0, P1, rgb=False, verbose=False):
     # First we compute the disparity map
     disp_map = disparity_mapping(left_image,
                                  right_image,
-                                 rgb=rgb,
-                                 verbose=verbose)
+                                 rgb=rgb)
 
     # Then decompose the left and right camera projection matrices
     l_intrinsic, l_rotation, l_translation = decomposition(
@@ -123,7 +129,7 @@ def stereo_depth(left_image, right_image, P0, P1, rgb=False, verbose=False):
     # Calculate depth map for left camera
     depth = depth_mapping(disp_map, l_intrinsic, l_translation, r_translation)
 
-    return depth, disp_map
+    return depth
 
 
 ############################################ Stereo Depth Estimation #########################################
@@ -131,7 +137,7 @@ def stereo_depth(left_image, right_image, P0, P1, rgb=False, verbose=False):
 
 ######################################### Feature Extraction and Matching ####################################
 
-def feature_extractor(image, detector='sift', mask=None):
+def feature_extractor(image, detector=detector_name, mask=None):
     """
     provide keypoints and descriptors
 
@@ -148,7 +154,7 @@ def feature_extractor(image, detector='sift', mask=None):
     return keypoints, descriptors
 
 
-def feature_matching(first_descriptor, second_descriptor, detector='sift', k=2,  distance_threshold=1.0):
+def feature_matching(first_descriptor, second_descriptor, detector=detector_name, k=2,  distance_threshold=1.0):
     """
     Match features between two images
 
@@ -158,7 +164,7 @@ def feature_matching(first_descriptor, second_descriptor, detector='sift', k=2, 
         feature_matcher = cv2.BFMatcher_create(cv2.NORM_L2, crossCheck=False)
     elif detector == 'orb':
         feature_matcher = cv2.BFMatcher_create(
-            cv2.NORM_HAMMING2, crossCheck=False)
+            cv2.NORM_L2, crossCheck=False)
     matches = feature_matcher.knnMatch(
         first_descriptor, second_descriptor, k=k)
 
@@ -183,3 +189,70 @@ def visualize_matches(first_image, second_image, keypoint_one, keypoint_two, mat
     plt.show()
 
 ######################################### Feature Extraction and Matching ####################################
+
+
+######################################### Motion Estimation ####################################
+def motion_estimation(matches, firstImage_keypoints, secondImage_keypoints, intrinsic_matrix, depth, max_depth=max_depth_value):
+    """
+    Estimating motion of the left camera from sequential imgaes 
+
+    """
+    rotation_matrix = np.eye(3)
+    translation_vector = np.zeros((3, 1))
+
+    # Only considering keypoints that are matched for two sequential frames
+    image1_points = np.float32(
+        [firstImage_keypoints[m.queryIdx].pt for m in matches])
+    image2_points = np.float32(
+        [secondImage_keypoints[m.trainIdx].pt for m in matches])
+
+    cx = intrinsic_matrix[0, 2]
+    cy = intrinsic_matrix[1, 2]
+    fx = intrinsic_matrix[0, 0]
+    fy = intrinsic_matrix[1, 1]
+
+    points_3D = np.zeros((0, 3))
+    outliers = []
+
+    # Extract depth information to build 3D positions
+    for indices, (u, v) in enumerate(image1_points):
+        z = depth[int(v), int(u)]
+
+        # We will not consider depth greater than max_depth
+        if z > max_depth:
+            outliers.append(indices)
+            continue
+
+        # Using z we can find the x,y points in 3D coordinate using the formula
+        x = z*(u-cx)/fx
+        y = z*(v-cy)/fy
+
+        # Stacking all the 3D (x,y,z) points
+        points_3D = np.vstack([points_3D, np.array([x, y, z])])
+
+    # Deleting the false depth points
+    image1_points = np.delete(image1_points, outliers, 0)
+    image2_points = np.delete(image2_points, outliers, 0)
+
+    # Apply Ransac Algorithm to remove outliers
+    _, rvec, translation_vector, _ = cv2.solvePnPRansac(
+        points_3D, image2_points, intrinsic_matrix, None)
+
+    rotation_matrix = cv2.Rodrigues(rvec)[0]
+
+    return rotation_matrix, translation_vector, image1_points, image2_points
+
+######################################### Motion Estimation ####################################
+
+
+######################################## Error Calculation ###################################
+def root_mean_squared_error(ground_truth, estimated_trajectory):
+
+    num_frames_trajectory = estimated_trajectory.shape[0] - 1
+
+    squared_error = np.sqrt((ground_truth[num_frames_trajectory, 0, 3] - estimated_trajectory[:, 0, 3])**2
+                            + (ground_truth[num_frames_trajectory, 1,
+                               3] - estimated_trajectory[:, 1, 3])**2
+                            + (ground_truth[num_frames_trajectory, 2, 3] - estimated_trajectory[:, 2, 3])**2)**2
+    mse = squared_error.mean()
+    return np.sqrt(mse)

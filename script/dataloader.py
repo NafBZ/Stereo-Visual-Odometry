@@ -3,8 +3,6 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import datetime
 import yaml
 
 
@@ -83,7 +81,6 @@ class DataLoader(object):
             # Store all the images into the memory
             self.left_images = []
             self.right_images = []
-            self.pointclouds = []
 
             # Iterate through all the images to store in the above defined variables
             for i, left in enumerate(self.left_camera_images):
