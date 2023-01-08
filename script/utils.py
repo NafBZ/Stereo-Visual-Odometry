@@ -104,7 +104,6 @@ def depth_mapping(left_disparity_map, left_intrinsic, left_translation, right_tr
     return depth_map
 
 
-# Let's make an all-inclusive function to get the depth from an incoming set of stereo images
 def stereo_depth(left_image, right_image, P0, P1, rgb=rgb_value):
     '''
     Takes stereo pair of images and returns a depth map for the left camera. 
