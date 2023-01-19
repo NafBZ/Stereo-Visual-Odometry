@@ -79,7 +79,7 @@ Inside the script directory, you can play with different functions and see the o
 $ python3 playground.py
 ```
 
-## Performance Evaluation
+## Performance Evaluation through Plotting Trajectory
 
 > Lets plot the Ground Truth First
 
@@ -101,6 +101,69 @@ $ python3 playground.py
 Sequence 00                |  Sequence 01
 :-------------------------:|:-------------------------:
 ![](https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/estim_00.png)  |  ![](https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/estim_01.png)
+
+## Performance Evaluation using SLAM Toolbox
+
+To measure the performance of the algorithm's estimated trajectory, an open source SLAM toolbox named [evo](https://github.com/MichaelGrupp/evo) has been used. Please check their github repository for installation purposes. To evaluate the trajectory you can simply run the following code. Make sure you put the correct file name in order to visualise.
+
+```
+$ cd datasets/poses/
+$ evo_traj test_03.txt --ref=03.txt -p --plot_mode=xz
+```
+
+<p align="center">
+  <strong>Trajectory</strong> of Sequence 3 
+</p>
+
+<p align="center">
+  <img src="https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/seq3_plot3.png" />
+</p>
+
+<p align="center">
+  <strong>Absolute Pose Error</strong> in X,Y,Z Axis - Sequence 3
+</p>
+
+<p align="center">
+  <img src="https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/seq3_xyz.png" />
+</p>
+
+<p align="center">
+  <strong>Absolute Pose Error</strong> in Roll, Pitch, Yaw - Sequence 3
+</p>
+
+<p align="center">
+  <img src="https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/seq3_rpy.png" />
+</p>
+
+
+<br></br>
+
+*Several other matrices have been plotted to understand the performance of the algorithm. Some of them are given below.*
+
+You can run the following code and save the result in a zip file.
+```
+$ cd datasets/poses/
+$ evo_ape 03.txt test_03.txt -va --plot --plot_mode xz --save_results results.zip
+```
+
+<p align="center">
+  <strong>RMSE</strong> 
+</p>
+
+
+<p align="center">
+  <img src="https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/seq3_plot2.png" />
+</p>
+
+<br></br>
+For statistical plotting just run the following command with the zip file that you saved
+```
+$ evo_res results.zip -p
+```
+
+Violin Plot - APE          |  Density Plot - APE
+:-------------------------:|:-------------------------:
+![](https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/new5.png)  |  ![](https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/new3.png)
 
 It seems that our implemented pipeline works to estimate motion from stereo images. However, the estimation is not perfect here. To minimize the error we can consider lidar data and fuse it to get better estimation. We can use [Kalman Filter](https://en.wikipedia.org/wiki/Kalman_filter), bundle adjustment and lots of technique to improve the estimated trajectory. Feel free to play with parameters and tracks. 
 
