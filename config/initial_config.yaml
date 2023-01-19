@@ -1,5 +1,5 @@
 data:
-  sequence: '00'
+  sequence: '01'
   main_path: '../datasets/sequences/{}/'
   pose_path: '../datasets/poses/{}.txt'
 
@@ -7,6 +7,6 @@ parameters:
   rgb: False
   rectified: True
   detector: 'sift'
-  distance_threshold: 0.25
+  distance_threshold: 0.30
   max_depth: 3000
   subset: null
