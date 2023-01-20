@@ -242,16 +242,3 @@ def motion_estimation(matches, firstImage_keypoints, secondImage_keypoints, intr
     return rotation_matrix, translation_vector, image1_points, image2_points
 
 ######################################### Motion Estimation ####################################
-
-
-######################################## Error Calculation ###################################
-def root_mean_squared_error(ground_truth, estimated_trajectory):
-
-    num_frames_trajectory = estimated_trajectory.shape[0] - 1
-
-    squared_error = np.sqrt((ground_truth[num_frames_trajectory, 0, 3] - estimated_trajectory[:, 0, 3])**2
-                            + (ground_truth[num_frames_trajectory, 1,
-                               3] - estimated_trajectory[:, 1, 3])**2
-                            + (ground_truth[num_frames_trajectory, 2, 3] - estimated_trajectory[:, 2, 3])**2)**2
-    mse = squared_error.mean()
-    return np.sqrt(mse)
