@@ -150,7 +150,7 @@ $ evo_traj test_03.txt --ref=03.txt -p --plot_mode=xz
 </p>
 
 
-As can be seen in Sequence 3, our implemented visual odometry functions admirably, with an RMSE of less than 1.6 over the course of the trajectory's greatest extent. Reasons for this include the ease of the track and the superior feature matching offered by stereo images. The y-axis is somewhat off, but the x- and z-axis inaccuracies are negligible.
+As can be seen in Sequence 3, our implemented visual odometry functions admirably, with an APE (Absolute Positioning Error) of less than 1.6 over the course of the trajectory's greatest extent. Reasons for this include the ease of the track and the superior feature matching offered by stereo images. The y-axis is somewhat off, but the x- and z-axis inaccuracies are negligible.
 
 
 > Several other matrices have been plotted to understand the performance of the algorithm. Some of them are given below.
