@@ -57,7 +57,13 @@ Now we extract features (Keypoints and Descriptors) using **SIFT** or **ORB** fr
 ![](https://github.com/NafBZ/Stereo-Visual-Odometry/blob/nafees/figures/orb_match.png)
 
 
-From the above images, we see that, SIFT provides us a lot of feature matching points even considering only 25% of matches. Whereas, ORB provide much less number of matching points. After we get sufficient matching points, we find the 3D points using the keypoints, matches, and camera's intrinsic parameters. From these 3D points we estimate the motion of the camera. To know how we retrieve $x, y$, please go through the code scripts. Everything is commented there. Next, we run [solvePnPRansac](https://docs.opencv.org/4.x/d5/d1f/calib3d_solvePnP.html) algorithm to filter out the outliers from the 3D points for better estimation. Finally, we plot the results and calculate the RMSE error.
+From the above images, we see that, SIFT provides us a lot of feature matching points even considering only 25% of matches. Whereas, ORB provide much less number of matching points. After we get sufficient matching points, we find the 3D points using the keypoints, matches, and camera's intrinsic parameters. In the motion estimation function, the depth points $z$ is retrieved from the given matches. And using the following formula $x, y$ values are retrieved as well. 
+
+$$ \huge{x = {z*(u-cx) \over fx}} $$
+
+$$ \huge{y = {z*(v-cy) \over fy}} $$
+
+Here, $u, v$ are pixel coordinates, $fx, fy$ are focal distance in the $x, y$ direction and $cx, cy$ are the optical center of image. We get the focal distance and the optical center from the camera intrinsic matrix. From these 3D points we estimate the motion of the camera. Next, we run [solvePnPRansac](https://docs.opencv.org/4.x/d5/d1f/calib3d_solvePnP.html) algorithm to filter out the outliers from the 3D points for better estimation. Finally, we plot the results.
 
 # How to run the project
 
@@ -102,9 +108,17 @@ Sequence 00                |  Sequence 01
 :-------------------------:|:-------------------------:
 ![](https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/estim_00.png)  |  ![](https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/estim_01.png)
 
+From stereo images, we can reliably infer motion thanks to our established visual odometry workflow. In this case, though, a more precise estimate is needed. A large quantity of drift occurs when the errors are accumulated. Noisy feature matches is another reason to increase the error. A more precise and error-free estimate can be derived from combining lidar data with other sources. Also the [Kalman filter](https://en.wikipedia.org/wiki/Kalman_filter) allows us to simultaneously predict and update the motion which overall provides better trajectory with less error. Many methods exist, including bundle adjustment, that can be used to refine the predicted course. Feel free to play with parameters and tracks.
+
 ## Performance Evaluation using SLAM Toolbox
 
-To measure the performance of the algorithm's estimated trajectory, an open source SLAM toolbox named [evo](https://github.com/MichaelGrupp/evo) has been used. Please check their github repository for installation purposes. To evaluate the trajectory you can simply run the following code. Make sure you put the correct file name in order to visualise.
+To measure the performance of the algorithm's estimated trajectory, an open source SLAM toolbox named [evo](https://github.com/MichaelGrupp/evo) has been used. Please check their github repository for extensive installation purposes (including virtual environment). You can install evo using pypi. Just run the follwing command in your terminal.
+
+```
+$ pip install evo --upgrade --no-binary evo
+```
+
+To evaluate the trajectory you can simply run the following code. Make sure you put the correct file name in order to visualise.
 
 ```
 $ cd datasets/poses/
@@ -136,9 +150,10 @@ $ evo_traj test_03.txt --ref=03.txt -p --plot_mode=xz
 </p>
 
 
-<br></br>
+As can be seen in Sequence 3, our implemented visual odometry functions admirably, with an RMSE of less than 1.6 over the course of the trajectory's greatest extent. Reasons for this include the ease of the track and the superior feature matching offered by stereo images. The y-axis is somewhat off, but the x- and z-axis inaccuracies are negligible.
 
-*Several other matrices have been plotted to understand the performance of the algorithm. Some of them are given below.*
+
+> Several other matrices have been plotted to understand the performance of the algorithm. Some of them are given below.
 
 You can run the following code and save the result in a zip file.
 ```
@@ -165,7 +180,7 @@ Violin Plot - APE          |  Density Plot - APE
 :-------------------------:|:-------------------------:
 ![](https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/new5.png)  |  ![](https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/new3.png)
 
-It seems that our implemented pipeline works to estimate motion from stereo images. However, the estimation is not perfect here. To minimize the error we can consider lidar data and fuse it to get better estimation. We can use [Kalman Filter](https://en.wikipedia.org/wiki/Kalman_filter), bundle adjustment and lots of technique to improve the estimated trajectory. Feel free to play with parameters and tracks. 
+**This is being done as part of a seminar for the Robotic Sensing, Perception, and Actuation course at FER**
 
 ### Contributors:
 
