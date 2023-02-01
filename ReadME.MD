@@ -54,7 +54,7 @@ Now we extract features (Keypoints and Descriptors) using **SIFT** or **ORB** fr
 ![](https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/sift_match.png)
 <br></br>
 *Detector: ORB - Threshold: 0.75*
-![](https://github.com/NafBZ/Stereo-Visual-Odometry/blob/nafees/figures/orb_match.png)
+![](https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/orb_match.png)
 
 
 From the above images, we see that, SIFT provides us a lot of feature matching points even considering only 25% of matches. Whereas, ORB provide much less number of matching points. After we get sufficient matching points, we find the 3D points using the keypoints, matches, and camera's intrinsic parameters. In the motion estimation function, the depth points $z$ is retrieved from the given matches. And using the following formula $x, y$ values are retrieved as well. 
