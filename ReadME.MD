@@ -38,7 +38,7 @@ This is an overview of how we have implemented this project.
 </p>
 
 We start creating a data loader class to retrieve images, ground truth and calibration parameters from the KITTI dataset. Due to low memory (RAM is < 16 GB :disappointed:), we utilize the generator option of python. Instead of reading all the images at once, it reads images sequentially inside a loop. Next we pass the images to a wrapper function named stereo depth. Inside the function, for each itearation a disparity maps is construted from a pair of stereo images. To construct disparity map, we have used the [StereoSGBM](https://docs.opencv.org/3.4/d2/d85/classcv_1_1StereoSGBM.html) function from OpenCV which is an implementation of Hirschumuller Algorithm. A disparity map is depicted below:   
-![](https://github.com/NafBZ/Stereo-Visual-Odometry/blob/main/figures/disparity.png)
+![](https://github.com/NafBZ/Stereo-Visual-Odometry/blob/master/figures/disparity.png)
 
 Using the disparity map, we get the depth of the scene using the formula:
 
