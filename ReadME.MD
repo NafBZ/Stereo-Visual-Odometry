@@ -1,5 +1,11 @@
 # Stereo Visual Odometry
 
+![GitHub Repo stars](https://img.shields.io/github/stars/NafBZ/Stereo-Visual-Odometry?style=for-the-badge&logo=github&labelColor=black&color=green)
+![GitHub forks](https://img.shields.io/github/forks/NafBZ/Stereo-Visual-Odometry?style=for-the-badge&logo=github)
+![Static Badge](https://img.shields.io/badge/python-3.9-blue?style=for-the-badge&logo=python&logoColor=white)
+
+
+
 This repo contains a basic pipeline to implement stereo visual odometry for road vehicles. For experimental evaluation and validation KITTI dataset has been used. Thanks to [Prof. Dr. Ivan Marković](https://www.fer.unizg.hr/en/ivan.markovic) for his amazing lectures on computer vision topics where we learn the core concepts of feature extractions, feature matching, triangulation, motion estimation etc. Moreover, we find this youtube channel named [
 First Principles of Computer Vision](https://www.youtube.com/@firstprinciplesofcomputerv3258) extremely useful.
 
