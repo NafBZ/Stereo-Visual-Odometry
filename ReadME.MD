@@ -188,12 +188,6 @@ Violin Plot - APE          |  Density Plot - APE
 
 **This is being done as part of a seminar for the Robotic Sensing, Perception, and Actuation course at FER**
 
-### Contributors:
-
-- [Nafees Bin Zaman](https://github.com/NafBZ)
-- [Bruk Gebregziabher](https://github.com/brukg)
-- [Jad Mansour](https://github.com/j4dooooo)
-
 
 <p align="center">
   <strong>Thanks for Visiting. Happy Coding</strong> :computer:
